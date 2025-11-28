@@ -1,13 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useAccount, useWaitForTransactionReceipt, useWriteContract, useReadContract } from "wagmi";
+import { useAccount, useWaitForTransactionReceipt, useWriteContract, useReadContract, useBalance } from "wagmi";
 import { formatEther, type BaseError } from "viem";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Loader2, CheckCircle, Gift, ExternalLink, ShieldQuestion, Diamond, Sparkles, UserCheck, Lock, Unlock, Hourglass, Twitter } from "lucide-react";
-import { airdropContract } from "@/lib/contracts";
+import { airdropContract, neonTokenContract } from "@/lib/contracts";
 import whitelist from "@/lib/whitelist.json";
 import { Progress } from "@/components/ui/progress";
 
@@ -82,6 +82,11 @@ export function ClaimCard() {
     isAfterCliff: boolean;
   } | null>(null);
   const [countdownKey, setCountdownKey] = useState(0);
+
+  const { refetch: refetchBalance } = useBalance({
+    address: address,
+    token: neonTokenContract.address,
+  });
 
   // Fetch whether the user has already claimed from the contract
   const { data: hasClaimedData, refetch: refetchClaimedStatus } = useReadContract({
@@ -194,6 +199,7 @@ export function ClaimCard() {
   useEffect(() => {
     if (isConfirmed) {
       refetchClaimedStatus();
+      refetchBalance();
       toast({
         title: "Claim Successful!",
         description: "Your tokens have been processed.",
@@ -206,7 +212,7 @@ export function ClaimCard() {
         description: (error as BaseError)?.shortMessage || "An unknown error occurred.",
       });
     }
-  }, [isConfirmed, error, toast, refetchClaimedStatus]);
+  }, [isConfirmed, error, toast, refetchClaimedStatus, refetchBalance]);
 
   const isClaiming = isPending || isConfirming;
   // A real vesting contract would allow multiple claims. For this demo, we simplify to one claim.

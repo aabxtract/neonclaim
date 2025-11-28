@@ -83,3 +83,21 @@ export const airdropContract = {
     }
   ] as const,
 };
+
+export const neonTokenContract = {
+  address: '0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512' as `0x${string}`, // Mock address for NEON token
+  abi: [
+    {
+      "constant": true,
+      "inputs": [{ "name": "_owner", "type": "address" }],
+      "name": "balanceOf",
+      "outputs": [{ "name": "balance", "type": "uint256" }],
+      "type": "function"
+    },
+    {
+      "name": "symbol",
+      "outputs": [{ "name": "", "type": "string" }],
+      "stateMutability": "view", "type": "function"
+    },
+  ] as const,
+};
