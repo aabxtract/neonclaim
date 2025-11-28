@@ -1,5 +1,8 @@
 import { ConnectWalletButton } from "@/components/connect-wallet-button";
 import { ClaimCard } from "@/components/claim-card";
+import { AirdropStats } from "@/components/airdrop-stats";
+import { Suspense } from "react";
+import { AirdropStatsSkeleton } from "@/components/airdrop-stats-skeleton";
 
 export default function Home() {
   return (
@@ -10,8 +13,11 @@ export default function Home() {
         </h1>
         <ConnectWalletButton />
       </header>
-      <main className="flex-grow flex items-center justify-center p-4">
+      <main className="flex-grow flex flex-col items-center justify-center p-4 space-y-8">
         <ClaimCard />
+        <Suspense fallback={<AirdropStatsSkeleton />}>
+          <AirdropStats />
+        </Suspense>
       </main>
       <footer className="text-center p-4 text-xs text-muted-foreground">
         <p>Built for the future of airdrops.</p>

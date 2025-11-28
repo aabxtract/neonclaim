@@ -10,12 +10,19 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { ChevronDown, Copy, LogOut, Wallet } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useEffect, useState } from "react";
 
 export function ConnectWalletButton() {
   const { address, isConnected } = useAccount();
   const { connect, connectors } = useConnect();
   const { disconnect } = useDisconnect();
   const { toast } = useToast();
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
 
   const handleCopyAddress = () => {
     if (address) {
@@ -26,6 +33,10 @@ export function ConnectWalletButton() {
       });
     }
   };
+
+  if (!isClient) {
+    return null;
+  }
 
   if (isConnected && address) {
     const truncatedAddress = `${address.slice(0, 6)}...${address.slice(-4)}`;
