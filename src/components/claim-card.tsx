@@ -1,21 +1,22 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { useAccount } from "wagmi";
+import { useEffect, useMemo, useState } from "react";
+import { useAccount, useWaitForTransactionReceipt, useWriteContract } from "wagmi";
 import { formatEther, type BaseError } from "viem";
 import { getAllocationForAddress } from "@/lib/merkle";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Loader2, CheckCircle, XCircle, Gift, ExternalLink } from "lucide-react";
+import { airdropContract } from "@/lib/contracts";
 
 export function ClaimCard() {
   const { address, isConnected } = useAccount();
   const { toast } = useToast();
+  
+  const { data: hash, error, isPending, writeContract } = useWriteContract();
 
-  const [isClaiming, setIsClaiming] = useState(false);
   const [isClaimed, setIsClaimed] = useState(false);
-  const [txHash, setTxHash] = useState<string | null>(null);
 
   const allocation = useMemo(() => {
     if (isConnected && address) {
@@ -26,49 +27,46 @@ export function ClaimCard() {
 
   const isEligible = allocation !== null;
   
-  // MOCK: This would use wagmi's useReadContract in a real app
-  // For now, we just use local state `isClaimed`
-  const hasAlreadyClaimed = isClaimed;
-
   const handleClaim = async () => {
     if (!allocation) return;
 
-    setIsClaiming(true);
+    writeContract({
+      address: airdropContract.address,
+      abi: airdropContract.abi,
+      functionName: 'claim',
+      args: [allocation.proof, BigInt(allocation.amount)],
+    });
+  };
 
-    // MOCK: This simulates a contract write call
-    console.log("Claiming with proof:", allocation.proof);
-    console.log("Amount:", allocation.amount);
+  const { isLoading: isConfirming, isSuccess: isConfirmed } = 
+    useWaitForTransactionReceipt({ 
+      hash, 
+    })
 
-    try {
-      // Simulate transaction delay
-      await new Promise(resolve => setTimeout(resolve, 3000));
-      
-      // Simulate a random transaction hash
-      const mockTxHash = `0x${[...Array(64)].map(() => Math.floor(Math.random() * 16).toString(16)).join('')}`;
-      setTxHash(mockTxHash);
-      
+  useEffect(() => {
+    if (isConfirmed) {
       setIsClaimed(true);
       toast({
         title: "Claim Successful!",
-        description: "Your tokens are on their way.",
+        description: "Your tokens have been claimed.",
       });
-
-    } catch (error) {
-      const err = error as BaseError;
+    }
+    if (error) {
       toast({
         variant: "destructive",
         title: "Claim Failed",
-        description: err.shortMessage || "An unknown error occurred.",
+        description: (error as BaseError)?.shortMessage || "An unknown error occurred.",
       });
-    } finally {
-      setIsClaiming(false);
     }
-  };
+  }, [isConfirmed, error, toast]);
+
+  const isClaiming = isPending || isConfirming;
+  const hasAlreadyClaimed = isConfirmed || isClaimed;
 
   const claimButtonDisabled = !isEligible || isClaiming || hasAlreadyClaimed;
   
   const getButtonState = () => {
-      if(isClaiming) return { text: "Claiming...", icon: <Loader2 className="mr-2 h-4 w-4 animate-spin" /> };
+      if(isClaiming) return { text: isConfirming ? "Confirming..." : "Claiming...", icon: <Loader2 className="mr-2 h-4 w-4 animate-spin" /> };
       if(hasAlreadyClaimed) return { text: "Claimed", icon: <CheckCircle className="mr-2 h-4 w-4" /> };
       if(!isEligible) return { text: "Not Eligible", icon: <XCircle className="mr-2 h-4 w-4" /> };
       return { text: "Claim Tokens", icon: <Gift className="mr-2 h-4 w-4" /> };
@@ -115,9 +113,9 @@ export function ClaimCard() {
               {buttonState.icon}
               {buttonState.text}
             </Button>
-            {txHash && (
+            {hash && (
                 <a 
-                  href={`https://etherscan.io/tx/${txHash}`}
+                  href={`https://etherscan.io/tx/${hash}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-sm text-accent hover:underline flex items-center"

@@ -1,6 +1,6 @@
 import { MerkleTree } from 'merkletreejs';
 import keccak256 from 'keccak256';
-import { solidityKeccak256 } from 'viem';
+import { keccak256 as viemKeccak256, pack } from 'viem/utils';
 import whitelist from './whitelist.json';
 
 type WhitelistEntry = {
@@ -8,9 +8,14 @@ type WhitelistEntry = {
   amount: string;
 };
 
+// The `solidityPackedKeccak256` is not directly available in viem, but we can replicate it.
+const solidityPackedKeccak256 = (types: any[], values: any[]) => {
+    return viemKeccak256(pack(types, values));
+}
+
 const leaves = whitelist.map((entry: WhitelistEntry) => 
   Buffer.from(
-    solidityKeccak256(
+    solidityPackedKeccak256(
       ['address', 'uint256'],
       [entry.address, BigInt(entry.amount)]
     ).slice(2),
@@ -31,7 +36,7 @@ export const getAllocationForAddress = (address: `0x${string}`): { proof: `0x${s
   }
 
   const leaf = Buffer.from(
-    solidityKeccak256(
+    solidityPackedKeccak256(
       ['address', 'uint256'],
       [entry.address, BigInt(entry.amount)]
     ).slice(2),
