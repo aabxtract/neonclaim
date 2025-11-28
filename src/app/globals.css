@@ -2,10 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
-  font-family: Arial, Helvetica, sans-serif;
-}
-
 @layer base {
   :root {
     --background: 0 0% 100%;
@@ -43,38 +39,38 @@ body {
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
   .dark {
-    --background: 0 0% 3.9%;
+    --background: 270 5% 15%; /* #262329 */
     --foreground: 0 0% 98%;
-    --card: 0 0% 3.9%;
+    --card: 270 5% 18%;
     --card-foreground: 0 0% 98%;
-    --popover: 0 0% 3.9%;
+    --popover: 270 5% 15%;
     --popover-foreground: 0 0% 98%;
-    --primary: 0 0% 98%;
-    --primary-foreground: 0 0% 9%;
-    --secondary: 0 0% 14.9%;
+    --primary: 285 87% 53%; /* #A020F0 */
+    --primary-foreground: 285 87% 95%;
+    --secondary: 270 5% 25%;
     --secondary-foreground: 0 0% 98%;
-    --muted: 0 0% 14.9%;
+    --muted: 270 5% 25%;
     --muted-foreground: 0 0% 63.9%;
-    --accent: 0 0% 14.9%;
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 62.8% 30.6%;
+    --accent: 183 100% 74%; /* #7DF9FF */
+    --accent-foreground: 270 5% 15%;
+    --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 14.9%;
-    --input: 0 0% 14.9%;
-    --ring: 0 0% 83.1%;
-    --chart-1: 220 70% 50%;
-    --chart-2: 160 60% 45%;
-    --chart-3: 30 80% 55%;
-    --chart-4: 280 65% 60%;
-    --chart-5: 340 75% 55%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
+    --border: 270 5% 30%;
+    --input: 270 5% 30%;
+    --ring: 183 100% 74%;
+    --chart-1: 285 87% 53%;
+    --chart-2: 183 100% 74%;
+    --chart-3: 285 87% 70%;
+    --chart-4: 183 100% 85%;
+    --chart-5: 285 87% 80%;
+    --sidebar-background: 270 5% 10%;
+    --sidebar-foreground: 0 0% 98%;
+    --sidebar-primary: 285 87% 53%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-accent: 270 5% 18%;
+    --sidebar-accent-foreground: 0 0% 98%;
+    --sidebar-border: 270 5% 25%;
+    --sidebar-ring: 183 100% 74%;
   }
 }
 
@@ -84,5 +80,22 @@ body {
   }
   body {
     @apply bg-background text-foreground;
+    background-image: linear-gradient(120deg, hsl(var(--background)), hsl(var(--primary) / 0.1), hsl(var(--background)));
+    background-size: 200% 200%;
+    animation: gradient-animation 15s ease infinite;
+  }
+}
+
+@layer utilities {
+  @keyframes gradient-animation {
+    0% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+    100% {
+      background-position: 0% 50%;
+    }
   }
 }
