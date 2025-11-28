@@ -6,7 +6,7 @@ import { formatEther, type BaseError } from "viem";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Loader2, CheckCircle, Gift, ExternalLink, ShieldQuestion, Diamond, Sparkles, UserCheck, Lock, Unlock, Hourglass } from "lucide-react";
+import { Loader2, CheckCircle, Gift, ExternalLink, ShieldQuestion, Diamond, Sparkles, UserCheck, Lock, Unlock, Hourglass, Twitter } from "lucide-react";
 import { airdropContract } from "@/lib/contracts";
 import whitelist from "@/lib/whitelist.json";
 import { Progress } from "@/components/ui/progress";
@@ -181,6 +181,13 @@ export function ClaimCard() {
     });
   };
 
+  const handleShare = () => {
+    const claimAmount = vestingState?.claimableAmount || 0n;
+    const text = `I just claimed my $NEON airdrop on #NeonClaim!\n\nI was eligible for the ${eligibility?.tier} tier and claimed ${formatEther(claimAmount)} tokens. Check if you're eligible too!`;
+    const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${window.location.href}`;
+    window.open(url, '_blank');
+  };
+
   const { isLoading: isConfirming, isSuccess: isConfirmed } = 
     useWaitForTransactionReceipt({ hash });
 
@@ -268,6 +275,57 @@ export function ClaimCard() {
     );
   }
 
+  const renderActionButtons = () => {
+    if (isConfirmed || hasAlreadyClaimed) {
+      return (
+        <div className="w-full space-y-4">
+          <Button
+            onClick={handleShare}
+            size="lg"
+            className="w-full font-bold text-lg bg-[#1DA1F2] hover:bg-[#1A91DA] text-white"
+          >
+            <Twitter className="mr-2 h-4 w-4" />
+            Share on X
+          </Button>
+          {hash && (
+            <a
+              href={`https://etherscan.io/tx/${hash}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-sm text-accent hover:underline flex items-center justify-center"
+            >
+              View on Etherscan <ExternalLink className="ml-1 h-4 w-4" />
+            </a>
+          )}
+        </div>
+      );
+    }
+
+    return (
+      <div className="w-full space-y-4">
+        <Button
+          onClick={handleClaim}
+          disabled={claimButtonDisabled}
+          size="lg"
+          className="w-full font-bold text-lg"
+        >
+          {buttonState.icon}
+          {buttonState.text}
+        </Button>
+        {hash && (
+          <a
+            href={`https://etherscan.io/tx/${hash}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-sm text-accent hover:underline flex items-center justify-center"
+          >
+            View on Etherscan <ExternalLink className="ml-1 h-4 w-4" />
+          </a>
+        )}
+      </div>
+    );
+  };
+
   return (
     <Card className="w-full max-w-md bg-card/50 backdrop-blur-lg border-primary/20 shadow-lg shadow-primary/10">
       <CardHeader>
@@ -293,25 +351,7 @@ export function ClaimCard() {
               </div>
               {renderVestingInfo()}
             </div>
-            <Button
-              onClick={handleClaim}
-              disabled={claimButtonDisabled}
-              size="lg"
-              className="w-full font-bold text-lg"
-            >
-              {buttonState.icon}
-              {buttonState.text}
-            </Button>
-            {hash && (
-                <a 
-                  href={`https://etherscan.io/tx/${hash}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-sm text-accent hover:underline flex items-center"
-                >
-                    View on Etherscan <ExternalLink className="ml-1 h-4 w-4" />
-                </a>
-            )}
+            {renderActionButtons()}
           </>
         ) : (
             <div className="w-full text-center bg-destructive/20 p-6 rounded-lg space-y-2">
