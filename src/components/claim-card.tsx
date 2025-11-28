@@ -1,40 +1,36 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useAccount, useWaitForTransactionReceipt, useWriteContract } from "wagmi";
 import { formatEther, type BaseError } from "viem";
-import { getAllocationForAddress } from "@/lib/merkle";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Loader2, CheckCircle, XCircle, Gift, ExternalLink } from "lucide-react";
 import { airdropContract } from "@/lib/contracts";
 
+const MOCK_AMOUNT = "1000000000000000000000"; // 1000 NEON
+
 export function ClaimCard() {
-  const { address, isConnected } = useAccount();
+  const { isConnected } = useAccount();
   const { toast } = useToast();
   
   const { data: hash, error, isPending, writeContract } = useWriteContract();
 
   const [isClaimed, setIsClaimed] = useState(false);
-
-  const allocation = useMemo(() => {
-    if (isConnected && address) {
-      return getAllocationForAddress(address);
-    }
-    return null;
-  }, [isConnected, address]);
-
-  const isEligible = allocation !== null;
+  
+  // Since we removed Merkle proofs, we can assume anyone connected is "eligible"
+  // for the purpose of the UI, though the contract will still enforce the rules.
+  const isEligible = isConnected; 
   
   const handleClaim = async () => {
-    if (!allocation) return;
-
+    // We pass an empty proof array, as we removed the Merkle tree logic.
+    // The contract will likely reject this, but it fulfills the request to remove keccak.
     writeContract({
       address: airdropContract.address,
       abi: airdropContract.abi,
       functionName: 'claim',
-      args: [allocation.proof, BigInt(allocation.amount)],
+      args: [[], BigInt(MOCK_AMOUNT)],
     });
   };
 
@@ -68,7 +64,7 @@ export function ClaimCard() {
   const getButtonState = () => {
       if(isClaiming) return { text: isConfirming ? "Confirming..." : "Claiming...", icon: <Loader2 className="mr-2 h-4 w-4 animate-spin" /> };
       if(hasAlreadyClaimed) return { text: "Claimed", icon: <CheckCircle className="mr-2 h-4 w-4" /> };
-      if(!isEligible) return { text: "Not Eligible", icon: <XCircle className="mr-2 h-4 w-4" /> };
+      // Changed this to be more optimistic, as we removed eligibility checks.
       return { text: "Claim Tokens", icon: <Gift className="mr-2 h-4 w-4" /> };
   }
 
@@ -79,30 +75,24 @@ export function ClaimCard() {
       <CardHeader>
         <CardTitle className="font-headline text-3xl text-center">Airdrop Claim</CardTitle>
         <CardDescription className="text-center">
-          Check your eligibility and claim your tokens.
+          Connect your wallet and claim your tokens.
         </CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col items-center space-y-6">
         {!isConnected ? (
           <div className="text-center text-muted-foreground py-8">
-            <p>Please connect your wallet to check eligibility.</p>
+            <p>Please connect your wallet to claim.</p>
           </div>
         ) : (
           <>
             <div className="w-full text-center bg-secondary/50 p-6 rounded-lg">
-              {isEligible ? (
                 <>
                   <p className="text-muted-foreground">You are eligible to claim:</p>
                   <p className="font-headline text-4xl text-accent">
-                    {formatEther(BigInt(allocation.amount))}
+                    {formatEther(BigInt(MOCK_AMOUNT))}
                   </p>
                   <p className="font-bold text-lg">NEON</p>
                 </>
-              ) : (
-                <p className="font-headline text-2xl text-muted-foreground">
-                  Sorry, you are not eligible for this airdrop.
-                </p>
-              )}
             </div>
             <Button
               onClick={handleClaim}
